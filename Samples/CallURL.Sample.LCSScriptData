@@ -1,0 +1,50 @@
+﻿PROTOCOL
+    POST
+DELAY
+    0
+URL
+    https://authmoduleqa.azurewebsites.net/api/Auth/LoginBackend
+HEADER
+	Accept
+	application/json
+HEADER
+	Accept-Language
+	n-US,en;q=0.9,pt-PT;q=0.8,pt;q=0.7,pt-BR;q=0.6,en-GB;q=0.5
+HEADER
+	Connection
+	keep-alive
+HEADER
+	Host
+	authmoduleqa.azurewebsites.net
+HEADER
+	Referer
+	https://authmoduleqa.azurewebsites.net/swagger/ui/index
+HEADER
+	sec-ch-ua
+	" Not A;Brand";v="99", "Chromium";v="96", "Microsoft Edge";v="96"
+HEADER
+	sec-ch-ua-mobile
+	?0
+HEADER
+	sec-ch-ua-platform
+	"Windows"
+HEADER
+	Sec-Fetch-Dest
+	empty
+HEADER
+	Sec-Fetch-Mode
+	cors
+HEADER
+	Sec-Fetch-Site
+	same-origin
+HEADER
+	User-Agent
+	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.41
+HEADER
+	Origin
+	https://authmoduleqa.azurewebsites.net
+BODY
+{ 
+  "email": "operations@godtlevert.no",
+  "password": "Sy0ne2017"
+}

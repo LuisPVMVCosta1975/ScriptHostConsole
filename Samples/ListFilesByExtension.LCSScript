@@ -1,0 +1,34 @@
+﻿Include Library/.Net10.0.0/FileSystem.LCSScriptInclude
+Include Library/.Net10.0.0/String.LCSScriptInclude
+
+Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("List Files By Extension")
+
+#DumpParameters(True)
+
+Path = GetFromUser("Path? ")
+Types = GetFromUser("Types? ")
+
+Host:WriteLine()
+
+Folder = GetDirectoryInfo(Path)
+Types = "|" + Types:Replace(" ", ""):Replace(",", "|"):ToUpper() + "|"
+
+NoFiles = True
+ForEach(File, Folder:GetFiles()) 
+{
+	Extension = "|" + File:Extension:Replace(".", ""):ToUpper() + "|"
+	If(Types == "||" || Types:Contains(Extension))
+	{
+		Host:WriteLine(File:FullName)
+		NoFiles = False
+	}
+}
+
+If(NoFiles)
+{
+	Host:WriteLine("No files found!")
+}
+
+WaitIfNeeded("Press <ENTER> to close...")
