@@ -1,0 +1,123 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup Label="Globals">
+    <SccProjectName>SAK</SccProjectName>
+    <SccProvider>SAK</SccProvider>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccLocalPath>SAK</SccLocalPath>
+    <Configurations>Debug;Release;Publish</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
+    <StartupObject>ScriptHostConsole.Program</StartupObject>
+    <Authors>Luís Costa</Authors>
+    <Company>LCSoft</Company>
+    <Product>LCSoft Framework Scripting Engine Host Console</Product>
+    <Description>LCSoft Framework Scripting Engine Host Console</Description>
+    <UseWPF>True</UseWPF>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PackageIcon>1495067.png</PackageIcon>
+    <ApplicationIcon>1495067.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Publish|AnyCPU'">
+    <Optimize>True</Optimize>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Content Include="..\..\..\LCSoft.Framework\SourceCode\LCSoft.Framework.Scripting\Library\**\*.*">
+        <Link>Library\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Remove="ScriptHostConsole.LCSScript" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="1495067.ico" />
+    <Content Include="CallURL.Sample1.LCSScriptData">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CallURL.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CallURL.Sample.LCSScriptData">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ConcatenateListItems.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="DecimalBinary.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="FreeStockMusicBatchDownloader.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Library\ScriptHostConsole.LCSScriptInclude">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ListFilesByExtension.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="MyHubPasswordEncryptor.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ScriptHostConsole.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SSD.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="WebServerDemo.LCSScript">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.53.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="LibraryTests\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="LCSoft.Framework.Core">
+      <HintPath>..\..\..\LCSoft.Framework\SourceCode\LCSoft.Framework.Core\bin\Release\net10.0\LCSoft.Framework.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="LCSoft.Framework.Scripting">
+      <HintPath>..\..\..\LCSoft.Framework\SourceCode\LCSoft.Framework.Scripting\bin\Release\net10.0\LCSoft.Framework.Scripting.dll</HintPath>
+    </Reference>
+    <Reference Include="LCSoft.Framework.Scripting.Debugger.WPF">
+      <HintPath>..\..\..\LCSoft.Framework\SourceCode\LCSoft.Framework.Scripting.Debugger.WPF\bin\Release\net10.0-windows7.0\LCSoft.Framework.Scripting.Debugger.WPF.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="1495067.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

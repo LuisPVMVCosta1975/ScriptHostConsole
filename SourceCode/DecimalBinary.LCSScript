@@ -1,0 +1,32 @@
+Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("Binaryy To Decimal Converter")
+
+BinaryNumber = GetFromUser("Binary Number? ")
+Host:WriteLine()
+
+DecimalNumber = ConverteBinaryToDecimal(BinaryNumber)
+Host:WriteLine("Decimal Number: " + DecimalNumber)
+
+Func ConverteBinaryToDecimal(BinaryNumber)
+{
+	Decimal = 0
+	ForEach(Digit, BinaryNumber)
+	{
+		Decimal = Decimal * 2 + ValidateBinaryDigit(Digit)
+	}
+	
+	Return(Decimal)
+}
+Func ValidateBinaryDigit(Digit)
+{
+	#Debugger("ValidateBinaryDigit", Digit, 0 + Digit - '0')
+	#Debugger("ValidateBinaryDigit", Digit, AsInt32(Digit) - AsInt32('0'))
+	#Debugger("ValidateBinaryDigit", Digit, AsInt32(Digit) - '0')
+
+	ReturnIf(Digit == '1', 1)
+	ReturnIf(Digit == '0', 0)
+	
+	Host:WriteLine("Invalid binary number!")
+	Exit(0)
+}

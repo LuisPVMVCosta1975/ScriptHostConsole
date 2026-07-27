@@ -1,0 +1,70 @@
+Include Library/.Net10.0.0/Net.LCSScriptInclude
+Include Library/.Net10.0.0/String.LCSScriptInclude
+
+Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("Web Server Demo")
+
+HttpListener = CreateHttpListener()
+HttpListener:Prefixes:Add("http://*:54765/")
+HttpListener:Start()
+
+Index0Content = ""
+Index1Content = ""
+
+Host:WriteLine("Server is running...")
+
+Repeat()
+{
+	HttpListenerContext = HttpListener:GetContext()
+	
+	#Parallel(Process, HttpListenerContext)
+	
+	RawUrl = HttpListenerContext:Request:RawUrl
+	
+	Host:WriteLine(RawUrl)
+	
+	If(RawUrl:ToUpper() == "/STOP")
+	{
+		HttpListenerResponse = HttpListenerContext:Response
+		HttpListenerResponse:StatusCode = GetHttpStatusCodeEnum():NoContent
+		HttpListenerResponse:ContentLength64 = 0
+		
+		HttpListenerResponse:OutputStream:Flush()
+		HttpListenerResponse:OutputStream:Close()
+		
+		Break(2)
+	}
+	Else(RawUrl == "/")
+	{
+		Index0Content = Index0Content + "A" #Index0Content += "A"
+		Index1Content = Index1Content + "B" #Index1Content += "B"
+		Content = "<sample><node index=\"0\">" + Index0Content + "</node><node index=\"1\">" + Index1Content + "</node></sample>"
+		
+		Buffer = GetEncodingClass():UTF8:GetBytes(Content)
+
+		HttpListenerResponse = HttpListenerContext:Response
+		HttpListenerResponse:StatusCode = GetHttpStatusCodeEnum():OK
+		HttpListenerResponse:ContentType = "text/xml"
+		HttpListenerResponse:ContentLength64 = Buffer:Length
+		HttpListenerResponse:OutputStream:Write(Buffer, ZeroInt32, Buffer:Length)
+Host:WriteLine("!!!!!!!!!!!")
+
+		HttpListenerResponse:OutputStream:Flush()
+		HttpListenerResponse:OutputStream:Close()
+	}
+	Else()
+	{
+		HttpListenerResponse = HttpListenerContext:Response
+		HttpListenerResponse:StatusCode = GetHttpStatusCodeEnum():NotFound
+		HttpListenerResponse:ContentLength64 = 0
+		
+		HttpListenerResponse:OutputStream:Flush()
+		HttpListenerResponse:OutputStream:Close()
+	}
+}
+
+HttpListener:Close()
+HttpListener = _
+
+Host:WriteLine("Server stopped!")

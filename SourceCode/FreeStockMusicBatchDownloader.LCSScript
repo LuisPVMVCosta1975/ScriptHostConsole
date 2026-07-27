@@ -1,0 +1,156 @@
+Include String.LCScriptInclude
+Include Net.LCScriptInclude
+Include FileSystem.LCScriptInclude
+
+Include Tools.LCScriptInclude
+
+PrintTitle("Free Stock Music Batch Downloader")
+
+IfNotEqual (ParameterCount, 2)
+{
+	Host:WriteLine("Usage: FreeStockMusicBatchDownloader.LCScript FreeStockMusicPage DestinationFolder")
+	Exit _
+}
+
+Host:WriteLine(Concat("Page: ", Parameter1))
+Host:WriteLine(Concat("Destination: ", Parameter2))
+
+Host:WriteLine()
+
+Host:Write("Downloading page...")
+Page = DownloadPage()
+Host:ClearLine()
+
+If(IsEmpty(Page))
+{
+	Host:WriteLine("Error downloading page!")
+	WaitIfNeeded("Press <ENTER> to close...")
+	Exit _
+}
+
+Host:Write("Parsing page...")
+JobItems = ParsePage(Page)
+Host:ClearLine()
+
+Host:WriteLine(Concat("Processing ", JobItems.GetLength(), " item(s):"))
+
+Count = 1
+#Server = GetServer().Add("/music/")
+Server = GetServer() + "/music/"
+ForEach (JobItem, JobItems)
+{
+	Host:WriteLine(Concat(Count:ToString("~|~00"), ") Getting: ", Server, JobItem.URL).Replace("~|~0", " ").Replace("~|~", ""))
+	Host:Write(Concat("         To: ", Parameter2, JobItem.Description))
+	ProcessJobItem(Server, JobItem)
+	Host:WriteLine()
+	
+	Inc(Count)
+}
+
+WaitIfNeeded("Press <ENTER> to close...")
+
+Function DownloadPage()
+{
+	HttpClient = CreateHttpClient()
+	
+	Result = HttpClient:GetAsync(Parameter1):Result
+	
+	ReturnIfFalse _, Result:IsSuccessStatusCode
+	
+	Return Result:Content:ReadAsStringAsync():Result.Replace("FSM Team feat. < e s c p >", "e s c p")
+}
+
+Function ParsePage(Page)
+{
+	FirstMarker = "<div class='mName'>"
+	FirstMarkerLength = FirstMarker.GetLength()
+	SecondMarker = "<a href='"
+	SecondMarkerLength = SecondMarker.GetLength()
+	ThirdMarker = "<div class='mTitle'>"
+	ThirdMarkerLength = ThirdMarker.GetLength()
+	FourthMarker = "<div class='mAuthor' title='"
+	FourthMarkerLength = FourthMarker.GetLength()
+	
+	JobItems = CreateList()
+	
+	Index = Page.IndexOf(FirstMarker)
+	While (Index >= 0)
+	{
+		#Index = Index.Add(FirstMarkerLength)
+		Inc(Index, FirstMarkerLength)
+		
+		Index1 = Page.IndexOf(SecondMarker, Index)
+		If (Index1 < 0)
+		{
+			Index = Page.IndexOf(FirstMarker,  Index)
+			Continue
+		}
+		
+		#Index = Index1.Add(SecondMarkerLength)
+		Index = Index1 + SecondMarkerLength
+		Index1 = Page.IndexOf("'", Index)
+		URL = Page.TakeRange(Index, Index1.Sub(Index)).Replace(".html",".mp3")
+		#Index = Index1.Add(1)
+		Index = Index1 + 1
+		
+		Index1 = Page.IndexOf(ThirdMarker, Index)
+		If (Index1 < 0)
+		{
+			Index = Page.IndexOf(FirstMarker,  Index)
+			Continue
+		}
+		
+		#Index = Index1.Add(ThirdMarkerLength)
+		Index = Index1 + ThirdMarkerLength
+		Index1 = Page.IndexOf("<", Index)
+		Description = Page.TakeRange(Index, Index1.Sub(Index))
+		#Index = Index1.Add(1)
+		Index = Index1 + 1
+		
+		Index1 = Page.IndexOf(FourthMarker, Index)
+		If (Index1 < 0)
+		{
+			Index = Page.IndexOf(FirstMarker,  Index)
+			Continue
+		}
+		
+		#Index = Index1.Add(FourthMarkerLength)
+		Index = Index1 + FourthMarkerLength
+		#Index = Page.IndexOf(">", Index).Add(1)
+		Index = Page.IndexOf(">", Index) + 1
+		Index1 = Page.IndexOf("<", Index)
+		Description = Concat(Description, " [", Page.TakeRange(Index, Index1.Sub(Index)).Replace("by ", ""), "].mp3")
+		#Index = Index1.Add(1)
+		Index = Index1 + 1
+		
+		Index = Page.IndexOf(FirstMarker, Index1)
+		
+		AddTypedItem(JobItems, JobItem, Description, URL)
+	}
+	
+	Return JobItems
+}
+
+Function GetServer()
+{
+	Index = Parameter1.LastIndexOf("/")
+	Return Parameter1.TakeRange(0, Index)
+}
+
+Function ProcessJobItem(Server, JobItem)
+{
+	#OnErrorIgnore
+	#{
+		HttpClient = CreateHttpClient()
+		
+		#HttpClient:DefaultRequestHeaders:Add("referer", Server.Replace("/music/","/").Add(JobItem.URL.Replace(".mp3",".html")))
+		HttpClient:DefaultRequestHeaders:Add("referer", Server.Replace("/music/","/") + JobItem.URL.Replace(".mp3",".html"))
+
+		#Result = HttpClient:GetByteArrayAsync(Server.Add(JobItem.URL)):Result
+		Result = HttpClient:GetByteArrayAsync(Server + JobItem.URL):Result
+		
+		GetFileClass():WriteAllBytes(Concat(Parameter2, JobItem.Description).Replace("|", ","), Result)
+	#}
+}
+
+Type JobItem(Description, URL)

@@ -1,0 +1,7 @@
+﻿Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("Script Host Console Test File")
+
+Debugger("Global")
+
+DumpParameters()

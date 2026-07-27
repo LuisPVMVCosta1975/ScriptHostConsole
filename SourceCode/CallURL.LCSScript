@@ -1,0 +1,270 @@
+﻿Include Library/.Net10.0.0/Net.LCSScriptInclude
+Include Library/.Net10.0.0/String.LCSScriptInclude
+Include Library/.Net10.0.0/FileSystem.LCSScriptInclude
+
+Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("Call URL")
+
+WaitMessage = "Press <ENTER> to close..."
+
+If(Parameter1:IsMissing())
+{
+	Host:WriteLine("Data file not provided!")
+	WaitIfNeededAndExit(WaitMessage, 100)
+}
+
+Job = LoadJob()
+ValidateJob(Job)
+
+If(Job:Parameters:Length <> 0)
+{
+	ForEach(Parameter, Job:Parameters)
+	{
+		Parameter:Value = GetFromUser(Parameter:Key + "? ")
+	}
+
+	ReplaceParameters(Job)
+	
+	Host:WriteLine()
+}
+
+Host:WriteLine("PROTOCOL: " + Job:Protocol)
+Host:WriteLine("DELAY: " + Job:Delay)
+Host:WriteLine("URL: " + Job:URL)
+ForEach(Header, Job:Headers)
+{
+	Host:WriteLine("HEADER: " + Header:Key + " = " + Header:Value)
+}
+If(Job:Body:IsNotEmpty())
+{
+	Host:WriteLine("BODY:\r\n" + Job:Body)
+}
+
+Host:WriteLine()
+
+HttpClient = CreateHttpClient()
+If(Job:Headers:Length <> 0)
+{
+	AddHeaders(Job, HttpClient)
+}
+
+Host:Write("Executing...")
+Response = ExecuteJob(Job, HttpClient)
+
+Host:ClearLine()
+DisplayResponse(Response)
+
+WaitIfNeeded(WaitMessage)
+
+Type Job(Protocol, Delay, Parameters, URL, Headers, Body)
+Type KeyValue(Key, Value)
+
+Function LoadJob()
+{
+	Job = CreateType(Job, _, _, CreateList(), _, CreateList(), _)
+	
+	StreamReader = OpenTextFile(Parameter1)
+	
+	Repeat()
+	{
+		Line = StreamReader:ReadLine()
+		BreakIf(Line:IsNull(), 1)
+		
+		LoadLine(Line, StreamReader, Job)
+	}
+	
+	StreamReader:Dispose()
+	StreamReader = _
+	
+	Return(Job)
+}
+Function LoadLine(Line, StreamReader, Job)
+{
+	If(Line == "PROTOCOL")
+	{
+		LoadProtocol(StreamReader, Job)
+	}
+	Else(Line == "DELAY")
+	{
+		LoadDelay(StreamReader, Job)
+	}
+	Else(Line == "URL")
+	{
+		LoadURL(StreamReader, Job)
+	}
+	Else(Line == "PARAMETER")
+	{
+		LoadParameter(StreamReader, Job)
+	}
+	Else(Line == "HEADER")
+	{
+		LoadHeader(StreamReader, Job)
+	}
+	Else(Line == "BODY")
+	{
+		LoadBody(StreamReader, Job)
+	}
+}
+Function LoadProtocol(StreamReader, Job)
+{
+	If(Job:Protocol:IsNotEmpty())
+	{
+		Host:WriteLine("Protocol already provided!")
+		WaitIfNeededAndExit(WaitMessage, 201)
+	}
+	
+	Protocol = StreamReader:ReadLine():Trim():ToUpper()
+	
+	If(Protocol:IsNotIn("POST", "GET"))
+	{
+		Host:WriteLine("Protocol invalid provided!")
+		WaitIfNeededAndExit(WaitMessage, 301)
+	}
+	
+	Job:Protocol = Protocol
+}
+Function LoadDelay(StreamReader, Job)
+{
+	If(Job:Delay:IsNotEmpty())
+	{
+		Host:WriteLine("Delay already provided!")
+		WaitIfNeededAndExit(WaitMessage, 202)
+	}
+	
+	Job:Delay = StreamReader:ReadLine():Trim():ToUpper()
+}
+Function LoadURL(StreamReader, Job)
+{
+	If(Job:URL:IsNotEmpty())
+	{
+		Host:WriteLine("URL already provided!")
+		WaitIfNeededAndExit(WaitMessage, 203)
+	}
+	
+	Job:URL = StreamReader:ReadLine():Trim()
+}
+Function LoadParameter(StreamReader, Job)
+{
+	Name = StreamReader:ReadLine():Trim()
+	Job:Parameters:Append(CreateType(KeyValue, Name, _))
+}
+Function LoadHeader(StreamReader, Job)
+{
+	Name = StreamReader:ReadLine():Trim()
+	Value = StreamReader:ReadLine():Trim()
+	Job:Headers:Append(CreateType(KeyValue, Name, Value))
+}
+Function LoadBody(StreamReader, Job)
+{
+	StringBuilder = CreateStringer()
+	
+	Repeat()
+	{
+		Line = StreamReader:ReadLine()
+		BreakIf(Line:IsNull(), 1)
+		
+		StringBuilder:AppendSeparated("\r\n", Line)
+	}
+	
+	Job:Body = StringBuilder:ToString()
+}
+
+Function ValidateJob(Job)
+{
+	If(Job:Protocol:IsEmpty())
+	{
+		Host:WriteLine("Protocol not provided!")
+		WaitIfNeededAndExit(WaitMessage, 101)
+	}
+	If(Job:Delay:IsEmpty())
+	{
+		Host:WriteLine("Delay not provided!")
+		WaitIfNeededAndExit(WaitMessage, 102)
+	}
+	If(Job:URL:IsEmpty())
+	{
+		Host:WriteLine("URL not provided!")
+		WaitIfNeededAndExit(WaitMessage, 103)
+	}
+	If(Job:Body:IsEmpty() && (Job:Protocol == "POST"))
+	{
+		Host:WriteLine("Body not provided!")
+		WaitIfNeededAndExit(WaitMessage, 104)
+	}
+	If(Job:Body:IsNotEmpty() && (Job:Protocol == "GET"))
+	{
+		Host:WriteLine("Body unnecessary provided!")
+		WaitIfNeededAndExit(WaitMessage, 404)
+	}
+}
+
+Func ReplaceParameters(Job)
+{
+	ForEach(Parameter, Job:Parameters)
+	{
+		PlaceHolder = "[$" + Parameter:Key + "$]"
+			
+		ForEach(Header, Job:Headers)
+		{
+			Header:Value = Header:Value:Replace(PlaceHolder, Parameter:Value)
+		}
+		
+		Job:URL = Job:URL:Replace(PlaceHolder, Parameter:Value)
+		
+		If(Job:Body:IsNotEmpty())
+		{
+			Job:Body = Job:Body:Replace(PlaceHolder, Parameter:Value)
+		}
+	}
+}
+
+Func AddHeaders(Job, HttpClient)
+{
+	DefaultRequestHeaders = HttpClient:DefaultRequestHeaders
+	
+	ForEach(Header, Job:Headers)
+	{
+		DefaultRequestHeaders:Add(Header:Key, Header:Value)
+	}
+}
+
+Func ExecuteJob(Job, HttpClient)
+{
+	If(Job:Protocol == "POST")
+	{
+		Return(HttpClient:PostAsync(Job:URL, CreateJsonContent(Job:Body)):Result)
+	}
+	Else()
+	{
+		Return(HttpClient:GetAsync(Job:URL):Result)
+	}
+}
+
+Func DisplayResponse(Response)
+{
+	If(Response:IsSuccessStatusCode)
+	{
+		Host:WriteLine("SUCCESS:")
+		Host:WriteLine(Response:Content:ReadAsStringAsync():Result)
+	}
+	Else()
+	{
+		Host:WriteLine("FAILED:")
+		Host:WriteLine("Status Code: " + Response:StatusCode)
+		Host:WriteLine("Content: " + Response:Content:ReadAsStringAsync():Result)
+	}
+}
+
+# Errors
+# 1?? - not provided
+# 2?? - already provided
+# 3?? - invalid provided
+# 4?? - unnecessary provided
+
+# Fields
+# 00 - Data File
+# 01 - Protocol
+# 02 - Delay
+# 03 - URL
+# 04 - Body

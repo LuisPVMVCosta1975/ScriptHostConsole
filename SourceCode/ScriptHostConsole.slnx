@@ -1,0 +1,18 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Publish" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Project Path="ScriptHostConsole/ScriptHostConsole.csproj" />
+  <Properties Name="TeamFoundationVersionControl">
+    <Property Name="SccAuxPath0" Value="https://luiscostasoftware.visualstudio.com" />
+    <Property Name="SccEnterpriseProvider" Value="{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}" />
+    <Property Name="SccLocalPath0" Value="ScriptHostConsole" />
+    <Property Name="SccNumberOfProjects" Value="1" />
+    <Property Name="SccProjectName0" Value="ScriptHostConsole" />
+    <Property Name="SccProjectUniqueName0" Value="ScriptHostConsole\\ScriptHostConsole.csproj" />
+    <Property Name="SccProvider0" Value="{4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}" />
+    <Property Name="SccTeamFoundationServer" Value="https://luiscostasoftware.visualstudio.com/" />
+  </Properties>
+</Solution>

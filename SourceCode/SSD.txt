@@ -1,0 +1,155 @@
+﻿Host:Title("Script de Sincronização de Discos", True)
+Host:WriteLine()
+
+DriveInfo = CreateAssemblyClass("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.DriveInfo")
+DriveType = CreateAssemblyClass("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.DriveType")
+File = CreateAssemblyClass("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.File")
+Directory = CreateAssemblyClass("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.Directory")
+
+Dispositivos = CreateType(Dispositivos, "", "", "", "")
+ObterDispositivos()
+ReportarDispositivos()
+Host:WriteLine()
+
+Pacotes = CreateType(Pacotes, "Não", "Não", "Não", "Não")
+ObterPacotes()
+ReportarPacotes()
+Host:WriteLine()
+
+If (All(Pacotes.FMSBeatriz = "Não", Pacotes.FMSLuis = "Não", Pacotes.VirtualMachine = "Não", Pacotes.Software = "Não"))
+{
+	Host:WriteLine("Nenhum pacote pode ser executado!")
+	Return False
+}
+
+Host:Write("Iniciar a sincronização? (S/s=Sim, N/n=Não) ")
+Resposta = Host:ReadYesNo()
+Host:ClearLine()
+If (All(Resposta != 'S', Resposta <> 's'))
+{
+	Host:WriteLine("Sincronização cancelada!")
+	Return False
+}
+
+Host:Write("A preparar a sincronização, por favor aguarde... ")
+TotalBytes = 0
+If (Pacotes.FMSBeatriz = "Sim") { PrepararPacoteFMSBeatriz() }
+If (Pacotes.FMSLuis = "Sim") { PrepararPacoteFMSLuis() }
+If (Pacotes.VirtualMachine = "Sim") { PrepararPacoteVirtualMachine() }
+If (Pacotes.Software = "Sim") { PrepararPacoteSoftware() }
+Host:ClearLine()
+
+Host:Write("A executar: 0% ")
+TotalBytesCopiados = 0
+TotalBytesCopiadosAnterior = 0
+If (Pacotes.FMSBeatriz = "Sim") { ExecutarPacoteFMSBeatriz() }
+If (Pacotes.FMSLuis = "Sim") { ExecutarPacoteFMSLuis() }
+If (Pacotes.VirtualMachine = "Sim") { ExecutarPacoteVirtualMachine() }
+If (Pacotes.Software = "Sim") { ExecutarPacoteSoftware() }
+Host:ClearLine()
+
+Host:WriteLine("Sincronização terminada!")
+---
+Function ObterDispositivos()
+{
+	DriveList = DriveInfo:GetDrives()
+	ForEach (Drive, DriveList)
+	{
+		If (Drive:DriveType = DriveType:Fixed)
+		{
+			If (Drive:VolumeLabel = "Luis Costa Storage 3") { Dispositivos.DiscoBeatriz = Drive.Name }
+			If (Drive:VolumeLabel = "Sistema") { Dispositivos.DiscoLuis = Drive.Name }
+			If (Drive:VolumeLabel = "Luis Costa Storage 2") { Dispositivos.DiscoSoftware = Drive.Name }
+			If (Drive:VolumeLabel = "Documentos") { Dispositivos.DiscoMovel = Drive.Name }
+		}
+	}
+}
+Function ReportarDispositivos()
+{
+	Host:Write("                      Disco Beatriz > ")
+	Host:WriteLine(Dispositivos.DiscoBeatriz)
+	Host:Write("                         Disco Luís > ")
+	Host:WriteLine(Dispositivos.DiscoLuis)
+	Host:Write("                     Disco Software > ")
+	Host:WriteLine(Dispositivos.DiscoSoftware)
+	Host:Write("                        Disco Móvel > ")
+	Host:WriteLine(Dispositivos.DiscoMovel)
+}
+Function ObterPacotes()
+{
+	If (Dispositivos.DiscoMovel = "") { Return False }
+
+	If (Dispositivos.DiscoBeatriz != "") { Pacotes.FMSBeatriz = "Sim" }
+	If (Dispositivos.DiscoLuis <> "") { Pacotes.FMSLuis = "Sim" }
+	If (Dispositivos.DiscoSoftware != "")
+	{
+		Pacotes.VirtualMachine = "Sim"
+		Pacotes.Software= "Sim"
+	}
+}
+Function ReportarPacotes()
+{
+	Host:Write("Filmes, Músicas e Séries da Beatriz > ")
+	Host:WriteLine(Pacotes.FMSBeatriz)
+	Host:Write("   Filmes, Músicas e Séries do Luís > ")
+	Host:WriteLine(Pacotes.FMSLuis)
+	Host:Write("                    Virtual Machine > ")
+	Host:WriteLine(Pacotes.VirtualMachine)
+	Host:Write("                           Software > ")
+	Host:WriteLine(Pacotes.Software)
+}
+Function PrepararPacoteFMSLuis()
+{
+	Folder = CreateAssemblyObject("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.DirectoryInfo", "D:\TesteOrigem")
+	CalcularTotalBytes(Folder)
+}
+Function CalcularTotalBytes(Folder)
+{
+	Directorias = Folder:GetDirectories()
+	ForEach (Directoria, Directorias) { CalcularTotalBytes(Directoria) }
+	Ficheiros = Folder:GetFiles()
+	ForEach (Ficheiro, Ficheiros) { Add(TotalBytes, Ficheiro.Length) }
+}
+Function ExecutarPacoteFMSBeatriz()
+{
+	Host:WriteLine("--> Filmes, Músicas e Séries da Beatriz")
+}
+Function ExecutarPacoteFMSLuis()
+{
+	Folder = CreateAssemblyObject("C:\WINDOWS\Microsoft.NET\Framework\v2.0.50727\mscorlib.dll", "System.IO.DirectoryInfo", "D:\TesteOrigem")
+	ProcessarDirectoria(Folder, "D:\TesteDestino")
+}
+Function ProcessarDirectoria(Origem, Destino)
+{
+	OrigemName = Concat(Origem:FullName, "\")
+	DestinoName = Concat(Destino, "\")
+	
+	Ficheiros = Origem:GetFiles()
+	ForEach (Ficheiro, Ficheiros) 
+	{
+		Add(TotalBytesCopiados, Ficheiro:Length)
+		FileName = Ficheiro:Name
+		File:Move(Concat(OrigemName, FileName), Concat(DestinoName, FileName))
+		TotalBytesCopiadosAnterior = Host:ProgressBar("A executar: ", TotalBytesCopiados, TotalBytes, TotalBytesCopiadosAnterior)
+	}
+	
+	Directorias = Origem:GetDirectories()
+	ForEach (Directoria, Directorias)
+	{
+		Aux = Concat(DestinoName, Directoria.Name)
+		If (Directory:Exists(Aux) = False) { Directory:CreateDirectory(Aux) }
+		ProcessarDirectoria(Directoria, Aux)
+		Directory:Delete(Directoria:FullName)
+	}
+}
+Function ExecutarPacoteVirtualMachine()
+{
+	Host:WriteLine("--> Virtual Machine")
+}
+Function ExecutarPacoteSoftware()
+{
+	Host:WriteLine("--> Software")
+}
+---
+Type Dispositivos(DiscoBeatriz, DiscoLuis, DiscoSoftware, DiscoMovel)
+Type Pacotes(FMSBeatriz, FMSLuis, VirtualMachine, Software)

@@ -1,0 +1,81 @@
+Func PrintTitle(Title)
+{
+	Host:WriteLine()
+	Host:Title(Title, True)
+	Host:WriteLine('=' * Title:Length)
+	Host:WriteLine()
+}
+
+Func BeepAndWaitIfNeeded(Message)
+{
+	Beep()
+	WaitIfNeeded(Message)
+}
+
+Func WaitIfNeeded(Message)
+{
+	If(Host:IsStandAlone())
+	{
+		Host:WriteLine()
+		Host:Write(Message)
+		Host:ReadLine()
+	}
+}
+
+Func BeepAndWaitIfNeededAndExit(Message, Value)
+{
+	Beep()
+	WaitIfNeededAndExit(Message, Value)
+}
+
+Func WaitIfNeededAndExit(Message, Value)
+{
+	WaitIfNeeded(Message)
+	Exit(Value)
+}
+
+Func GetFromUser(Prompt)
+{
+	Host:Write(Prompt)
+	Return(Host:ReadLine())
+}
+
+Func Beep()
+{
+	Host:Beep(400, 150)
+	Host:Beep(800, 150)
+	Host:Beep(400, 150)
+	Host:Beep(800, 150)
+}
+
+Func DumpParameters(AddSeparator)
+{
+	HasInfo = False
+	Run()
+	{
+		BreakIf(ParameterCount:IsMissing(), 1)
+		Host:WriteLine("ParameterCount: " + ParameterCount)
+		HasInfo = True
+		BreakIf(Parameter1:IsMissing(), 1)
+		Host:WriteLine("Parameter1: " + Parameter1)
+		BreakIf(Parameter2:IsMissing(), 1)
+		Host:WriteLine("Parameter2: " + Parameter2)
+		BreakIf(Parameter3:IsMissing(), 1)
+		Host:WriteLine("Parameter3: " + Parameter3)
+		BreakIf(Parameter4:IsMissing(), 1)
+		Host:WriteLine("Parameter4: " + Parameter4)
+		BreakIf(Parameter5:IsMissing(), 1)
+		Host:WriteLine("Parameter5: " + Parameter5)
+		BreakIf(Parameter6:IsMissing(), 1)
+		Host:WriteLine("Parameter6: " + Parameter6)
+		BreakIf(Parameter7:IsMissing(), 1)
+		Host:WriteLine("Parameter7: " + Parameter7)
+		BreakIf(Parameter8:IsMissing(), 1)
+		Host:WriteLine("Parameter8: " + Parameter8)
+	}
+	
+	If(HasInfo && AddSeparator:IfEmpty(False))
+	{
+		Host:WriteLine()
+	}
+}

@@ -1,0 +1,29 @@
+Include Library/.Net10.0.0/String.LCSScriptInclude
+
+Include Library/ScriptHostConsole.LCSScriptInclude
+
+PrintTitle("Concatenate List Items")
+
+Separator = GetFromUser("Separator? ")
+
+Host:WriteLine()
+
+Host:WriteLine("Type '*' to end item list.")
+Result = CreateStringer()
+Repeat()
+{
+	Host:Write("Item? ")
+	Line = Host:ReadLine():Replace(" ", "")
+	
+	BreakIf(Line == "*", 1)
+	
+	Result:AppendSeparated(Separator, Line)
+}
+
+Host:WriteLine()
+
+Host:WriteLine("---")
+Host:WriteLine(Result:ToString())
+Host:WriteLine("---")
+
+WaitIfNeeded("Press a key...")
